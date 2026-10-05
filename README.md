@@ -6,12 +6,11 @@ Migrating Microsoft Teams notifications in Google SecOps SOAR playbooks from pla
 
 Google SecOps SOAR has a Microsoft Teams integration, but it can't send Adaptive Cards — there's no native support for them yet. The built-in Teams actions only post plain text, so any approval prompt sent through them shows up as raw text or JSON that the recipient has to read by eye. To get around that, this guide covers a method built using an HTTP action together with Microsoft Graph mail, which sends a real, button-driven Adaptive Card instead and reads the user's response back through e-mail.
 
-<img width="1592" height="1354" alt="adaptivecard" src="https://github.com/user-attachments/assets/c4256cbb-3d5d-4165-aef6-11235ca4f93e" />
+<img width="1592" height="1354" alt="adaptivecard" src="https://github.com/user-attachments/assets/160062e2-644c-4fcb-88a5-b17645bfc0a7" />
 
+<img width="2126" height="1029" alt="image" src="https://github.com/user-attachments/assets/516fdad1-e86d-4cc3-8c04-972b97dd1baf" />
 
-<img width="2126" height="1029" alt="image" src="https://github.com/user-attachments/assets/19b8e22f-75cd-40e6-9f42-f1a3984f5ecb" />
-
-<img width="613" height="1288" alt="image" src="https://github.com/user-attachments/assets/478f9b13-cfc8-4fa3-836b-d6ddc0830e15" />
+<img width="613" height="1288" alt="image" src="https://github.com/user-attachments/assets/19239e11-dd60-4e5e-8ade-628c5f87004b" />
 
 
 ## What you need before starting
@@ -45,7 +44,8 @@ The "bot" behind the flow's **"Post adaptive card and wait for a response"** act
 
 **1. Create the agent.** In Copilot Studio, use **New agent**, then pick **Agent (Standard)** under "Other ways to build" — not the GitHub Copilot option, which is for a different kind of autonomous agent.
 
-<img width="1288" height="818" alt="agent-setup-1-new-agent" src="https://github.com/user-attachments/assets/8abb488e-c180-4af9-abd2-b7becb3020f9" />
+<img width="1288" height="818" alt="agent-setup-1-new-agent" src="https://github.com/user-attachments/assets/29eabdf4-e3d3-4e34-bd07-f4851c39756a" />
+
 
 **2. Give it minimal instructions.** This agent isn't doing any reasoning — it's just the identity that posts and tracks the card — so the instructions field can be as simple as a placeholder line.
 
@@ -58,12 +58,14 @@ The "bot" behind the flow's **"Post adaptive card and wait for a response"** act
 
 This is a one-time fix per agent; once `isNotificationOnly` is set, every future republish from Copilot Studio keeps it.
 
-<img width="1649" height="558" alt="agent-setup-2-instructions" src="https://github.com/user-attachments/assets/1d318b78-caad-4bf6-b399-766a3a6af3f1" />
+<img width="1649" height="558" alt="agent-setup-2-instructions" src="https://github.com/user-attachments/assets/15e031f7-2760-4e42-91fe-cfc9422d9b25" />
+
 
 
 **3. Publish it with the Teams channel enabled.** Open **Publish**, select **Teams + Microsoft 365**, and check the box to make it available there. You don't need to enable the Microsoft 365 Copilot toggle unless you also want it discoverable inside Copilot itself — Teams availability is what the flow actually depends on.
 
-<img width="1635" height="809" alt="agent-setup-3-publish" src="https://github.com/user-attachments/assets/aecd4d72-10e4-45ee-8a0c-d703418b0c0c" />
+<img width="1635" height="809" alt="agent-setup-3-publish" src="https://github.com/user-attachments/assets/620137e6-9bbc-42f1-9523-25f8be938853" />
+
 
 Click **Save and publish**. Once it's done, use the **"See agent in Teams"** link shown next to the agent preview to open it and add it to your own Teams — this is what makes it installed and able to actually post cards, not just published.
 
@@ -71,7 +73,7 @@ Give it a few minutes before moving on — a newly published agent typically tak
 
 **4. Point the flow's Wait Card action at it.** Back in the flow, the Teams **"Post adaptive card and wait for a response"** action (named `Wait Card` here) is where the agent gets wired in: set **Post as** to "Microsoft Copilot Studio agent", and pick your published agent under **Agent**. If it's not in the list yet, that's the propagation delay above — wait a bit and refresh. If it's still not in the list, then be sure that the account you signed in to Power Automate have full access to Copilot Agent.
 
-<img width="1384" height="1298" alt="agent-setup-4-wait-card-config" src="https://github.com/user-attachments/assets/915ae199-41fc-4075-a159-8a38d028d7e5" />
+<img width="1384" height="1298" alt="agent-setup-4-wait-card-config" src="https://github.com/user-attachments/assets/3a86751a-b4c7-4f41-8f5f-26997d320509" />
 
 
 While setting the flow up, Power Automate will also prompt you to authorize a **connection** for the Teams and Mail (Office 365) actions it uses — make sure to pick an account that actually has permission to post in Teams and read/send from the mailbox you're using, not just whichever account happens to be signed in.
@@ -124,7 +126,8 @@ SecOps playbook
 ```
 
 Here's roughly what that looks like in Teams — the initial card, and the reminder that follows if nothing's been clicked yet (illustrative data, not a real case):
-<img width="1592" height="1354" alt="adaptivecard" src="https://github.com/user-attachments/assets/4d3dd840-222e-4f17-807f-bcc4c225dea0" />
+<img width="1592" height="1354" alt="adaptivecard" src="https://github.com/user-attachments/assets/245cdc25-6aa3-4ef6-8a7f-b37b8d414df0" />
+
 
 
 The flow is triggered by an HTTP call, not by SOAR waiting on the flow directly — SOAR fires the request and moves on. Everything after that happens on the Power Automate side: it builds and posts the card using its Teams connector's native **"Post adaptive card and wait for a response"** action, which is backed by a bot Microsoft already runs for every M365 tenant. When the user taps a button, that response comes back into the *flow* — not into SOAR. The flow's next step is what turns that response into something SOAR can see: it sends an e-mail to a mailbox SOAR already has access to, with a small, fixed-format block in the body:
@@ -144,7 +147,8 @@ This is the core trick of the whole design: SOAR never receives a push of any ki
 
 Here's what that looks like inside the flow itself:
 
-<img width="2214" height="1590" alt="annotated_flow" src="https://github.com/user-attachments/assets/ebc36575-a8a8-46cd-b341-929c042454d0" />
+<img width="2214" height="1590" alt="annotated_flow" src="https://github.com/user-attachments/assets/f254da40-2ebd-49a2-8495-b9bf6df6df89" />
+
 
 **Timeout and reminder logic** — the flow waits for `timeout_minutes + reminder_timeout_minutes` total. A parallel branch waits just `timeout_minutes`, and if there's still no response at that point, sends a reminder card. If the full window elapses with nothing, the flow posts an escalation card and e-mails SOAR a `NO_RESPONSE` result instead of a decision.
 
@@ -153,9 +157,7 @@ Here's what that looks like inside the flow itself:
 **One deliberate inconsistency** — one of the buttons displays "Not Acknowledged" but actually submits a slightly different string as its decision value. That's not a bug: the playbook's existing condition logic already expects that older string, so the visible label was corrected without touching the value it sends, to avoid breaking every downstream branch that depends on it.
 
 ## What a converted playbook looks like
-
-<img width="2126" height="1029" alt="annotated_playbook" src="https://github.com/user-attachments/assets/1d5eeb4d-aac3-46fc-a402-8c6f5b972ebf" />
-<img width="613" height="1288" alt="image" src="https://github.com/user-attachments/assets/de85ae3e-9cde-4291-9e71-1c8abc1d40ba" />
+<img width="2126" height="1029" alt="annotated_playbook" src="https://github.com/user-attachments/assets/baa05694-5a9b-4314-ac56-77427af97a88" />
 
 
 1. **HTTP request step** — fires the call to the flow's trigger URL with the case title, ID, timeout settings, recipient, and the dynamic fields for the card. This step's job is done the moment it gets a 2xx back; it doesn't wait for a person to respond.
