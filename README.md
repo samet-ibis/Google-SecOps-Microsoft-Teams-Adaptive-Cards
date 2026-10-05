@@ -244,7 +244,7 @@ A few things worth noting:
 ## Appendix: Power Automate Flow Definition
 
 The full flow package — ready to import directly into Power Automate — is attached in this repo as [secops-case-approval-card.zip](https://github.com/user-attachments/files/33059112/secops-case-approval-card.zip)
-. It's the same flow described above (Build_Card, Wait_Card, the reminder/escalation branches, the error-handling scope), sanitized the same way as everything else in this doc: the flow ID, tenant ID, connected bot identifier, service account, and mailbox are placeholder values. I also uploaded a sample Playbook to test it. [AdaptiveCardPB.zip](https://github.com/user-attachments/files/33059290/AdaptiveCardPB.zip)
+. It's the same flow described above (Build_Card, Wait_Card, the reminder/escalation branches, the error-handling scope), sanitized the same way as everything else in this doc: the flow ID, tenant ID, connected bot identifier, service account, and mailbox are placeholder values. I also uploaded a sample Playbook to test it. AdaptiveCardPB.zip
 
 
 
